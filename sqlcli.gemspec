@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Sqlcli::VERSION
   gem.authors       = ["Johnny Boursiquot"]
   gem.email         = ["jboursiquot@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{Command line interface for interacting with relational databases, local or remote.}
+  gem.summary       = %q{Command line interface for interacting with relational databases, local or remote. Supports bookmarking of connection strings for easy referencing when submitting queries.}
+  gem.homepage      = "https://github.com/jboursiquot/sqlcli"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
