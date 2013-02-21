@@ -42,6 +42,7 @@ module Sqlcli
       init_logger options[:verbose]
       init_connection_db
       begin
+        raise ValidationError, "Invalid connection string" unless connection_string_valid? connection
         info "Create connection"
         conn = Connection.new_from_conn_string connection, name, @@logger
         info "Connection valid? #{conn.valid?}"
@@ -63,14 +64,20 @@ module Sqlcli
       end
     end
 
-    desc 'do', 'Performs a SQL operation through the given bookmark'
-    method_option :bookmark, aliases: '-b', desc: 'Bookmark', required: true
+    desc 'do sql', 'Performs a SQL operation through the given bookmark'
+    method_option :bookmark, aliases: '-b', desc: 'Bookmark', default: nil
+    method_option :uri, aliases: '-u', desc: 'Connection string URI', default: nil
     method_option :verbose, aliases: '-v', desc: 'Verbose', default: false
     def do sql
       init_logger options[:verbose]
       init_connection_db
       begin
-        conn_string = @@db[:connections].where(name: options[:bookmark]).first[:connection_string]
+        if options[:bookmark].nil? && !options[:uri].nil?
+          conn_string = options[:uri] if connection_string_valid? options[:uri]
+        else
+          conn_string = @@db[:connections].where(name: options[:bookmark]).first[:connection_string]
+        end
+
         db = Sequel.connect(conn_string)
         raise ValidationError, "Can't connect using #{conn_string}" unless db.test_connection
 
@@ -93,11 +100,12 @@ module Sqlcli
       rescue ValidationError => e
         error "Validation Error: #{e.message}"
       rescue => e
+        binding.pry
         fatal "Error: #{e.message}"
       end
     end
 
-  desc 'tables', 'Lists the tables available'
+    desc 'tables', 'Lists the tables available'
     method_option :bookmark, aliases: '-b', desc: 'Bookmark', required: true
     method_option :verbose, aliases: '-v', desc: 'Verbose', default: false
     def tables
@@ -121,6 +129,15 @@ module Sqlcli
     end
 
     private
+
+    def connection_string_valid? conn_string
+      begin
+        Sequel.connect(conn_string).test_connection
+      rescue => e
+        error e.message
+        false
+      end
+    end
 
     def init_connection_db
       begin
