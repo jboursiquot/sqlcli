@@ -128,6 +128,29 @@ module Sqlcli
       end
     end
 
+    desc 'columns table', 'Lists the columns of the given tables'
+    method_option :bookmark, aliases: '-b', desc: 'Bookmark', required: true
+    method_option :verbose, aliases: '-v', desc: 'Verbose', default: false
+    def columns table
+      init_logger options[:verbose]
+      init_connection_db
+      begin
+        conn_string = @@db[:connections].where(name: options[:bookmark]).first[:connection_string]
+        db = Sequel.connect(conn_string)
+        raise ValidationError, "Can't connect using #{conn_string}" unless db.test_connection
+        rows = []
+        ds = db[table.to_sym].columns
+        ds.each {|t| rows << [t]}
+        table = Terminal::Table.new(headings: ["#{table} columns"], rows: rows)
+        $stdout.puts table
+        exit
+      rescue ValidationError => e
+        error "Validation Error: #{e.message}"
+      rescue => e
+        fatal "Error: #{e.message}"
+      end
+    end
+
     private
 
     def connection_string_valid? conn_string

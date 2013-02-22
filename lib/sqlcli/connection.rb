@@ -18,10 +18,10 @@ class Connection
     end
   end
 
-  def initialize(options = {})
+  def initialize options = {}
     @name = options[:name]
     @host = options[:host]
-    @port = options[:port]
+    @port = options[:port].to_i
     @username = options[:username]
     @password = options[:password]
     @schema = options[:schema]
@@ -60,12 +60,11 @@ class Connection
       hash[:username] = conn_string.split(/\/\//).last.split(/:/).first
       hash[:password] = conn_string.split(/\/\//).last.split(/:/)[1].split(/@/).first
       hash[:host] = conn_string.split(/\/\//).last.split(/@/).last.split(/:/).first
-      hash[:port] = conn_string.split(/\/\//).last.split(/@/).last.split(/:/).last.split(/\//).first
+      hash[:port] = conn_string.split(/\/\//).last.split(/@/).last.split(/:/).last.split(/\//).first.to_i
       hash[:schema] = conn_string.split(/\/\//).last.split(/@/).last.split(/:/).last.split(/\//).last
       hash[:connection_string] = conn_string
       hash
     rescue => e
-      binding.pry
       raise
     end
   end
